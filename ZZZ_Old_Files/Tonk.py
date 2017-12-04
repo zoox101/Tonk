@@ -20,7 +20,7 @@ class Deck:
         return len(self.cards)
 
 
-class TonkAgent1:
+class Tonk:
 
     def sort_hand(self, hand):
         list.sort(hand)
