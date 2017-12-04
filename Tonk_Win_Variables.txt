@@ -1,0 +1,4 @@
+My Hand Sum
+My Hand Count
+Their Hand Count
+Turn Count
