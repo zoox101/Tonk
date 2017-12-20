@@ -103,17 +103,122 @@ class LiveGame:
         return self.players[next]
 
 
+    #Playing move for the opponent
+    def opp_move(self, opp_name):
+
+        #Getting the row for the previous game
+        data = {}
+        start_row = self.records.iloc[-1]
+        for player in self.players: data[player] = start_row[player]
+
+        #Getting the opponent's move from the user
+        data['Place'] = UI.get_card('Discarded card:')
+        count = UI.get_number('Number discarded:')
+        choice = UI.get_from_list(['S', 'D'], 'Stack or Deck [S/D]: ')
+
+        #Generating new data for the opponent
+        data[opp_name] = start_row[opp_name] - count + 1
+        data['Count'] = count
+        data['Move'] = opp_name
+
+        #If the opponent took from the stack...
+        if choice == 'S':
+            data['Take'] = start_row['Place']
+            data['From'] = 'Pile'
+
+        #If the opponent took from the deck...
+        else:
+            data['Take'] = '?'
+            data['From'] = 'Deck'
+
+        #Updating the records
+        self.records = self.records.append(data, ignore_index=True)
+
+        #Getting the next player
+        index = self.players.index(opp_name)
+        next = (index + 1) % len(self.players)
+        return self.players[next]
+
+
+    #Playing the move for the player
+    def my_move(self):
+
+        #Getting the row for the previous game
+        data = {}
+        start_row = self.records.iloc[-1]
+        for player in self.players: data[player] = start_row[player]
+
+        #TODO: Outputting probabilities
+
+        #Choosing the card to discard
+        data['Move'] = self.agent.name
+        discard = UI.get_card('Discarded card:')
+        data['Place'] = discard
+
+        #Asking if the player took from the deck or the stack
+        choice = UI.get_from_list(['S', 'D'], 'Stack or Deck')
+
+        #If the player took from the stack...
+        if choice == 'S':
+            data['Take'] = start_row['Place']
+            data['From'] = 'Pile'
+
+        #If the player took from the deck...
+        else:
+            data['Take'] = UI.get_card('Card drawn:')
+            data['From'] = 'Deck'
+
+        #Getting the player's hand
+        hand = self.records[self.agent.name].iloc[-1]
+        start_len = len(hand)
+        hand = filter(lambda x: x != discard, hand)
+        end_len = len(hand)
+        count = start_len - end_len
+        hand.append(data['Take'])
+        hand = sorted(hand)
+
+        #Updating the player's hand
+        data[self.agent.name] = hand
+        data['Count'] = count
+
+        #Updating the records
+        self.records = self.records.append(data, ignore_index=True)
+
+        #Getting the next player
+        index = self.players.index(self.agent.name)
+        next = (index + 1) % len(self.players)
+        return self.players[next]
+
+
+    #Playing the game of Tonk
     def play(self):
-        print self.start_move()
-        print self.records
+
+        #Getting the start move
+        to_move = self.start_move()
+
+        #While the game is being played
+        while to_move != None:
+
+            print '\n' + to_move + '\'s turn'
+
+            #Play moves
+            if to_move == self.agent.name:
+                to_move = self.my_move()
+            else:
+                to_move = self.opp_move(to_move)
+
+            print self.records
+
+        return self.records
 
 
 #------------------------------------------------------------------------------#
 # Main Method
 #------------------------------------------------------------------------------#
 
-agent = TonkAgent1('Will')
-game = LiveGame(agent, ['Will', 'Bob'])
+agent = TonkAgent1('WILL')
+game = LiveGame(agent, ['WILL', 'BOB'])
+print game.play
 
 #------------------------------------------------------------------------------#
 #
